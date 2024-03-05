@@ -1,0 +1,71 @@
+# Nous allons créer un compte de stockage, puis une base de données SQL Database, et ensuite nous allons copier les données du premier à la seconde grâce à Data Factory.
+
+# Dans cloud shell:
+# Créer un groupe de ressources:
+az group create --name storage-resource-group --location eastus
+## Pour sélectionner une autre région, afficher la liste des régions avec:
+#az account list-locations --query "[].{Region:name}" --out table
+
+# Créer un compte de stockage:
+az storage account create --name <account-name> --resource-group storage-resource-group --location eastus --sku Standard_RAGRS --kind StorageV2 --allow-blob-public-access false
+
+# Pour afficher les points de terminaison de service du compte de stockage créé:
+az storage account show --resource-group <resource-group> --name <account-name> --query '[primaryEndpoints, secondaryEndpoints]'
+
+# Création de la base de donnée SQL Database:
+# Commençons par définir les paramètres de la BDD:
+# Variable block
+let "randomIdentifier=$RANDOM*$RANDOM"
+location="East US"
+resourceGroup="storage-resource-group"
+tag="create-and-configure-database"
+server="msdocs-azuresql-server-$randomIdentifier"
+database="msdocsazuresqldb$randomIdentifier"
+login="azureuser"
+password="Pa$$w0rD-$randomIdentifier"
+startIp=0.0.0.0
+endIp=0.0.0.0
+echo "Using resource group $resourceGroup & database $database with login: $login, password: $password..."
+
+# Noter rapidement le mot-de-passe car le cloud shell va se réinitialiser et vous le perdrez.
+
+# Création du serveur:
+echo "Creating $server in $location..."
+az sql server create --name $server --resource-group $resourceGroup --location "$location" --admin-user $login --admin-password $password
+
+# Créer une règle de pare-feu sur le serveur:
+echo "Configuring firewall..."
+az sql server firewall-rule create --resource-group $resourceGroup --server $server -n AllowYourIp --start-ip-address $startIp --end-ip-address $endIp
+
+# Créer une BDD:
+echo "Creating $database in serverless tier"
+az sql db create --resource-group $resourceGroup --server $server --name $database --sample-name AdventureWorksLT --edition GeneralPurpose --compute-model Serverless --family Gen5 --capacity 2
+
+# Ensuite aller dans l'interface Azure Portal, sélectionner le serveur SQL créé, aller dans 'Sécurité' -> 'Mise en réseau', et en-bas de la page qui s'fficher vérifier que 
+# 'Autoriser les services et les ressources Azure à accéder à ce serveur ' est activé.
+
+# Créer un objet blob et une table SQL:
+# Ouvrir le programme Bloc-Notes et y copier cette table, et enregistrer sous le nom de fichier inputEmp.txt:
+FirstName|LastName
+John|Doe
+Jane|Doe
+# Aller dans Azure Portal, puis dans le compte de stockage créé, puis charger le fichier créé (options par défaut).
+
+# Créer une table SQL de récepteur:
+# Entrer dans laressource serveur SQL, connectez-vous via l'éditeur de requêtes (menu à gauche), et utilisez le script SQL suivant pour créer une table nommée dbo.emp
+# dans votre base de données SQL Database:
+CREATE TABLE dbo.emp
+(
+    ID int IDENTITY(1,1) NOT NULL,
+    FirstName varchar(50),
+    LastName varchar(50)
+)
+GO
+CREATE CLUSTERED INDEX IX_emp_ID ON dbo.emp (ID);
+
+# Créer un Data Fabric:
+# Dans le menu de gauche du portail Azre, cliquer sur Créer une ressource -> Intégration -> Data Factory.
+# Dans la page Nouvelle fabrique de données, entrez ADFTutorialDataFactory[Vos_initiales] dans le champ Nom.
+# Cliquer sur 'Créer'
+# Une fois le Data Factory créé, entrer dans la ressource, puis cliquer sur 'Lancer le studio' pour ouvrir l'environnement du studio.
+# Pour la suite, revenir au support de formation.
