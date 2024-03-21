@@ -19,11 +19,6 @@
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
-		"schema": [
-			{
-				"name": "Name;ProductNumber;Color;StandardCost;ListPrice",
-				"type": "String"
-			}
-		]
+		"schema": []
 	}
 }
