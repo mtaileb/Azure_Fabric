@@ -1,0 +1,9 @@
+{
+	"name": "MonADFmt",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "5e7433a2-3c80-40b1-bc90-ffdc570672f9",
+		"tenantId": "c9690615-d768-4311-ab37-69ea90150275"
+	}
+}
