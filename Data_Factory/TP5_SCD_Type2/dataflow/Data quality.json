@@ -1,0 +1,83 @@
+{
+	"name": "Data quality",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "Address",
+					"description": "Address"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Parquet1",
+						"type": "DatasetReference"
+					},
+					"name": "OutputToADLS",
+					"description": "OutputToADLS"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Pass",
+					"description": "Pass"
+				},
+				{
+					"name": "DataQualityRules",
+					"description": "DataQualityRules"
+				},
+				{
+					"name": "FailedMetadata",
+					"description": "FailedMetadata"
+				},
+				{
+					"name": "FilterOutNULLCountry",
+					"description": "FilterOutNULLCountry"
+				},
+				{
+					"name": "MakeFullAddress",
+					"description": "MakeFullAddress"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AddressID as integer,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          City as string,",
+				"          StateProvince as string,",
+				"          CountryRegion as string,",
+				"          PostalCode as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> Address",
+				"Address split(iif(!in(columnNames(),'AddressID'),false(), iif(!in(columnNames(),'AddressLine1'),false(), iif(!in(columnNames(),'City'),false(), iif(!in(columnNames(),'StateProvince'),false(), iif(!in(columnNames(),'CountryRegion'),false(), iif(!in(columnNames(),'PostalCode'),false(),true())))))),",
+				"     disjoint: false) ~> Pass@(Pass, Fail)",
+				"Pass@Pass assert(expectTrue(CountryRegion == 'United States', false, 'assertUSOnly', null, CountryRegion + ' is not valid'),",
+				"     expectUnique(AddressID, false, 'addressIdUnique', null, \"ID of {AddressID} is not unique\")) ~> DataQualityRules",
+				"Pass@Fail assert(expectTrue(false(), false, 'failedMetadata', null, 'Necessary columns are not present'),",
+				"     abort: true) ~> FailedMetadata",
+				"DataQualityRules filter(!isNull(CountryRegion)) ~> FilterOutNULLCountry",
+				"FilterOutNULLCountry derive(FullAddress = \"{AddressLine1} {City}, {StateProvince} {PostalCode}\") ~> MakeFullAddress",
+				"MakeFullAddress sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> OutputToADLS"
+			]
+		}
+	}
+}
