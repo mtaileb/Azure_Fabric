@@ -35,7 +35,7 @@
 					"name": "GetProductID"
 				},
 				{
-					"name": "AddDimension"
+					"name": "AddDimensionColumns"
 				},
 				{
 					"name": "MarkAsInsert"
@@ -51,6 +51,9 @@
 				},
 				{
 					"name": "FilterForExistingProducts"
+				},
+				{
+					"name": "ObsoleteRow"
 				}
 			],
 			"scriptLines": [
@@ -96,14 +99,16 @@
 				"CheckForNewProducts keyGenerate(output(ProductID as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> GetProductID",
-				"GetProductID derive() ~> AddDimension",
-				"AddDimension alterRow() ~> MarkAsInsert",
+				"GetProductID derive(ProductID = ERROR_FUNCTION(''),",
+				"          colonne1 = ERROR_FUNCTION('')) ~> AddDimensionColumns",
+				"AddDimensionColumns alterRow() ~> MarkAsInsert",
 				"MarkAsInsert union(byName: true)~> UnionAllData",
 				"ExistingProducts filter(Active == 1) ~> FilterForActive",
 				"FilterForActive derive({Name,Color,StandardCost,ListPrice} = md5(Name,Color,StandardCost,ListPrice)) ~> CreateRowHash2",
 				"CreateRowHash2, CreateRowHash1 exists(ExistingProducts@ProductNumber == NewProducts@ProductNumber && RowHash1 == RowHash2,",
 				"     negate:true,",
-				"     broadcast: 'auto')~> FilterForExistingProducts",
+				"     broadcast: 'left')~> FilterForExistingProducts",
+				"FilterForExistingProducts derive() ~> ObsoleteRow",
 				"UnionAllData sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
