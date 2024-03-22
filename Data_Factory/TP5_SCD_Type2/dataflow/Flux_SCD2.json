@@ -17,11 +17,21 @@
 						"type": "DatasetReference"
 					},
 					"name": "ExistingProducts"
+				},
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					},
+					"name": "LookupMaxKey"
 				}
 			],
 			"sinks": [
 				{
 					"name": "DimensionTable"
+				},
+				{
+					"name": "cacheKey"
 				}
 			],
 			"transformations": [
@@ -92,27 +102,62 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> ExistingProducts",
-				"NewProducts derive({Name,Color,StandardCost,ListPrice} = md5(Name,Color,StandardCost,ListPrice)) ~> CreateRowHash1",
-				"CreateRowHash1, CreateRowHash2 exists(NewProducts@ProductNumber == ExistingProducts@ProductNumber && RowHash1 == RowHash2,",
+				"source(output(",
+				"          ProductID as integer,",
+				"          Name as string,",
+				"          ProductNumber as string,",
+				"          Color as string,",
+				"          StandardCost as decimal(19,4),",
+				"          ListPrice as decimal(19,4),",
+				"          Size as string,",
+				"          Weight as decimal(8,2),",
+				"          ProductCategoryID as integer,",
+				"          ProductModelID as integer,",
+				"          SellStartDate as timestamp,",
+				"          SellEndDate as timestamp,",
+				"          DiscontinuedDate as timestamp,",
+				"          ThumbNailPhoto as binary,",
+				"          ThumbnailPhotoFileName as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp,",
+				"          EffectiveDate as timestamp,",
+				"          Active as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'select max (ProductID) as maxkey from [SalesLT].[Product]',",
+				"     format: 'query') ~> LookupMaxKey",
+				"NewProducts derive(RowHash1 = md5(Name,Color,StandardCost,ListPrice)) ~> CreateRowHash1",
+				"CreateRowHash1, CreateRowHash2 exists(NewProducts@ProductNumber == ExistingProducts@ProductNumber && RowHash1 == RowHash2",
+				"/* Ignorer les lignes identiques dans les deux flux car elles ne sont si des nouvelles entrées, ni des updates */,",
 				"     negate:true,",
-				"     broadcast: 'auto')~> CheckForNewProducts",
+				"     broadcast: 'left')~> CheckForNewProducts",
 				"CheckForNewProducts keyGenerate(output(ProductID as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> GetProductID",
-				"GetProductID derive(ProductID = ERROR_FUNCTION(''),",
-				"          colonne1 = ERROR_FUNCTION('')) ~> AddDimensionColumns",
+				"GetProductID derive(ProductID = ProductID+toInteger(cacheKey#output().maxkey),",
+				"          Active = 1,",
+				"          EffectiveDate = currentUTC()) ~> AddDimensionColumns",
 				"AddDimensionColumns alterRow() ~> MarkAsInsert",
 				"MarkAsInsert union(byName: true)~> UnionAllData",
 				"ExistingProducts filter(Active == 1) ~> FilterForActive",
-				"FilterForActive derive({Name,Color,StandardCost,ListPrice} = md5(Name,Color,StandardCost,ListPrice)) ~> CreateRowHash2",
-				"CreateRowHash2, CreateRowHash1 exists(ExistingProducts@ProductNumber == NewProducts@ProductNumber && RowHash1 == RowHash2,",
+				"FilterForActive derive(RowHash2 = md5(Name,Color,StandardCost,ListPrice)) ~> CreateRowHash2",
+				"CreateRowHash2, CreateRowHash1 exists(ExistingProducts@ProductNumber == NewProducts@ProductNumber && RowHash1 == RowHash2 /* Ignorer les lignes identiques */,",
 				"     negate:true,",
 				"     broadcast: 'left')~> FilterForExistingProducts",
-				"FilterForExistingProducts derive() ~> ObsoleteRow",
+				"FilterForExistingProducts derive(Active = 0) ~> ObsoleteRow",
 				"UnionAllData sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> DimensionTable"
+				"     skipDuplicateMapOutputs: true) ~> DimensionTable",
+				"LookupMaxKey sink(validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     store: 'cache',",
+				"     format: 'inline',",
+				"     output: false,",
+				"     saveOrder: 1) ~> cacheKey"
 			]
 		}
 	}
