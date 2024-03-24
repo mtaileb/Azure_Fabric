@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "Deduplication_fuzzy_dataflow",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
