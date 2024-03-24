@@ -25,6 +25,36 @@
 				},
 				{
 					"name": "soundexBranch"
+				},
+				{
+					"name": "Orig1"
+				},
+				{
+					"name": "groupSoundex"
+				},
+				{
+					"name": "phoneBranch"
+				},
+				{
+					"name": "soundJoin"
+				},
+				{
+					"name": "groupPhone"
+				},
+				{
+					"name": "phoneJoin"
+				},
+				{
+					"name": "zipBranch"
+				},
+				{
+					"name": "groupZip"
+				},
+				{
+					"name": "zipJoin"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -70,7 +100,7 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> sourceName",
-				"sourceName derive(FullName = ERROR_FUNCTION('')) ~> CreateFullName",
+				"select1 derive(FullName = toString(trim(toString(FirstName)) + iif(isNull(MiddleInitial) || MiddleInitial == '', '', ' ' + trim(toString(MiddleInitial)) + ' ') + trim(toString(LastName)))) ~> CreateFullName",
 				"CreateFullName select(mapColumn(",
 				"          each(match(instr(lower(name),'phone') > 0),",
 				"               'phone' = $$),",
@@ -78,14 +108,97 @@
 				"               'zip' = $$),",
 				"          each(match(instr(lower(name),'fullname') > 0),",
 				"               'fullname' = $$),",
-				"          each(match(instr(lower(name),'id') > 0),",
+				"          each(match(instr(lower(name),'emp') > 0),",
 				"               'acctnum' = $$)",
 				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> MapNames",
-				"MapNames derive() ~> FuzzyMatch",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> MapNames",
+				"MapNames derive(SoundexValue = soundex('FullName')) ~> FuzzyMatch",
 				"FuzzyMatch select(skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> soundexBranch"
+				"     skipDuplicateMapOutputs: true) ~> soundexBranch",
+				"FuzzyMatch select(mapColumn(",
+				"          phone,",
+				"          zip,",
+				"          fullname,",
+				"          acctnum,",
+				"          SoundexValue",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Orig1",
+				"Orig1 aggregate(groupBy(SoundexValue),",
+				"     soundexmatch = sum(1)) ~> groupSoundex",
+				"soundJoin select(skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> phoneBranch",
+				"groupSoundex, soundexBranch join(groupSoundex@SoundexValue == soundexBranch@SoundexValue,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> soundJoin",
+				"soundJoin aggregate(groupBy(phone,",
+				"          groupSoundex@SoundexValue),",
+				"     phonematch = sum(1),",
+				"          acctnum_agg = last(acctnum)) ~> groupPhone",
+				"groupPhone, phoneBranch join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> phoneJoin",
+				"phoneJoin select(mapColumn(",
+				"          phone = phoneBranch@phone,",
+				"          zip,",
+				"          fullname,",
+				"          acctnum,",
+				"          SoundexValue = phoneBranch@SoundexValue",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> zipBranch",
+				"phoneJoin aggregate() ~> groupZip",
+				"groupZip join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> zipJoin",
+				"sourceName select(mapColumn(",
+				"          EmpID = {Emp ID},",
+				"          NamePrefix = {Name Prefix},",
+				"          FirstName = {First Name},",
+				"          MiddleInitial = {Middle Initial},",
+				"          LastName = {Last Name},",
+				"          Gender,",
+				"          {E Mail},",
+				"          {Father's Name},",
+				"          {Mother's Name},",
+				"          {Mother's Maiden Name},",
+				"          {Date of Birth},",
+				"          {Time of Birth},",
+				"          {Age in Yrs.},",
+				"          {Weight in Kgs.},",
+				"          {Date of Joining},",
+				"          {Quarter of Joining},",
+				"          {Half of Joining},",
+				"          {Year of Joining},",
+				"          {Month of Joining},",
+				"          {Month Name of Joining},",
+				"          {Short Month},",
+				"          {Day of Joining},",
+				"          {DOW of Joining},",
+				"          {Short DOW},",
+				"          {Age in Company (Years)},",
+				"          Salary,",
+				"          {Last % Hike},",
+				"          SSN,",
+				"          {Phone No. },",
+				"          {Place Name},",
+				"          County,",
+				"          City,",
+				"          State,",
+				"          Zip,",
+				"          Region,",
+				"          UserName = {User Name},",
+				"          Password",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}
