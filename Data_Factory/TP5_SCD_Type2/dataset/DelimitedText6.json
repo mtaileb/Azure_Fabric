@@ -1,0 +1,49 @@
+{
+	"name": "DelimitedText6",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "moviesDB_fuzzy2.csv",
+				"folderPath": "example-fuzzy",
+				"fileSystem": "example-fuzzy"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "film",
+				"type": "String"
+			},
+			{
+				"name": "titre",
+				"type": "String"
+			},
+			{
+				"name": "genre",
+				"type": "String"
+			},
+			{
+				"name": "year",
+				"type": "String"
+			},
+			{
+				"name": "Eval",
+				"type": "String"
+			},
+			{
+				"name": "Rotton Tomato",
+				"type": "String"
+			}
+		]
+	}
+}
