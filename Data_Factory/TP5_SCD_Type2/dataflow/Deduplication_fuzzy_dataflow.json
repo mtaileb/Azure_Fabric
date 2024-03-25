@@ -12,7 +12,14 @@
 					"name": "sourceName"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"name": "sinkDupes"
+				},
+				{
+					"name": "sinkNoDupes"
+				}
+			],
 			"transformations": [
 				{
 					"name": "CreateFullName"
@@ -55,6 +62,18 @@
 				},
 				{
 					"name": "select1"
+				},
+				{
+					"name": "setConstants"
+				},
+				{
+					"name": "matchScores"
+				},
+				{
+					"name": "finalResult"
+				},
+				{
+					"name": "CheckForDupes"
 				}
 			],
 			"scriptLines": [
@@ -113,7 +132,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: false,",
 				"     skipDuplicateMapOutputs: false) ~> MapNames",
-				"MapNames derive(SoundexValue = soundex('FullName')) ~> FuzzyMatch",
+				"MapNames derive(SoundexValue = soundex(fullname)) ~> FuzzyMatch",
 				"FuzzyMatch select(skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> soundexBranch",
 				"FuzzyMatch select(mapColumn(",
@@ -138,7 +157,7 @@
 				"          groupSoundex@SoundexValue),",
 				"     phonematch = sum(1),",
 				"          acctnum_agg = last(acctnum)) ~> groupPhone",
-				"groupPhone, phoneBranch join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"groupPhone, phoneBranch join(groupPhone@phone == phoneBranch@phone,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -152,8 +171,12 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> zipBranch",
-				"phoneJoin aggregate() ~> groupZip",
-				"groupZip join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"phoneJoin aggregate(groupBy(zip,",
+				"          groupPhone@phone,",
+				"          groupPhone@SoundexValue),",
+				"     zipmatch = sum(1),",
+				"          acctnum_agg = last(acctnum)) ~> groupZip",
+				"groupZip, zipBranch join(groupZip@zip == zipBranch@zip,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -198,7 +221,35 @@
 				"          Password",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1"
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"zipJoin derive(soundexweight = 50,",
+				"          zipweight = 25,",
+				"          phoneweight = 25,",
+				"          soundexbool = iif(soundexmatch > 1, 1, 0),",
+				"          zipbool = iif(zipmatch > 1, 1, 0),",
+				"          phonebool = iif(phonematch > 1, 1, 0)) ~> setConstants",
+				"setConstants derive(matchscore = (soundexbool * 50) + (zipbool * 25) + (phonebool * 25)) ~> matchScores",
+				"matchScores select(mapColumn(",
+				"          soundexweight,",
+				"          zipweight,",
+				"          phoneweight,",
+				"          soundexbool,",
+				"          zipbool,",
+				"          phonebool,",
+				"          matchscore",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> finalResult",
+				"finalResult split(matchscore > 50,",
+				"     disjoint: false) ~> CheckForDupes@(Duplicates, NotDupre)",
+				"CheckForDupes@Duplicates sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkDupes",
+				"CheckForDupes@NotDupre sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkNoDupes"
 			]
 		}
 	}
