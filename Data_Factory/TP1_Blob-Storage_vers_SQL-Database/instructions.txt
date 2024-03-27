@@ -52,7 +52,7 @@ Jane|Doe
 # Aller dans Azure Portal, puis dans le compte de stockage créé, puis charger le fichier créé (options par défaut).
 
 # Créer une table SQL de récepteur:
-# Entrer dans laressource serveur SQL, connectez-vous via l'éditeur de requêtes (menu à gauche), et utilisez le script SQL suivant pour créer une table nommée dbo.emp
+# Entrer dans la ressource BDD, connectez-vous via l'éditeur de requêtes (menu à gauche), et utilisez le script SQL suivant pour créer une table nommée dbo.emp
 # dans votre base de données SQL Database:
 CREATE TABLE dbo.emp
 (
@@ -63,7 +63,7 @@ CREATE TABLE dbo.emp
 GO
 CREATE CLUSTERED INDEX IX_emp_ID ON dbo.emp (ID);
 
-# Créer un Data Fabric:
+# Créer un Data Factory:
 # Dans le menu de gauche du portail Azre, cliquer sur Créer une ressource -> Intégration -> Data Factory.
 # Dans la page Nouvelle fabrique de données, entrez ADFTutorialDataFactory[Vos_initiales] dans le champ Nom.
 # Cliquer sur 'Créer'
