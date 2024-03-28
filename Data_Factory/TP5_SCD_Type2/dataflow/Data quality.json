@@ -77,7 +77,6 @@
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     outputAssertFailedRows: true,",
 				"     ignoreAssertFailedRows: true) ~> OutputToADLS"
 			]
 		}
