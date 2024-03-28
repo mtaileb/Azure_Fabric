@@ -18,7 +18,7 @@
 						"referenceName": "DelimitedText3",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
+					"name": "sinkADLS"
 				}
 			],
 			"transformations": [
@@ -58,7 +58,7 @@
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink1"
+				"     skipDuplicateMapOutputs: true) ~> sinkADLS"
 			]
 		}
 	}
