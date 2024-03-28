@@ -43,7 +43,7 @@
 				"     ignoreNoFilesFound: false) ~> source1",
 				"source1 derive(RowHash = sha2(256,columns())) ~> MakeRowHash",
 				"MakeRowHash aggregate(groupBy(RowHash),",
-				"     each(match(!in(['RowHash'], name)), $$ = first($$))) ~> DistinctRows",
+				"     each(match(!in(['RowHash'],name)), $$ = first($$))) ~> DistinctRows",
 				"DistinctRows sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
