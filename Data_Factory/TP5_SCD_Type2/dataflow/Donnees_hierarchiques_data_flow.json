@@ -14,6 +14,10 @@
 			],
 			"sinks": [
 				{
+					"dataset": {
+						"referenceName": "DelimitedText9",
+						"type": "DatasetReference"
+					},
 					"name": "TextFileOut"
 				}
 			],
@@ -61,6 +65,9 @@
 				"     skipDuplicateMapOutputs: false) ~> FlattenPriods",
 				"FlattenPriods sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> TextFileOut"
 			]
