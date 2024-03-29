@@ -68,6 +68,9 @@
 				},
 				{
 					"name": "ObsoleteRow"
+				},
+				{
+					"name": "MarkAsUpdate"
 				}
 			],
 			"scriptLines": [
@@ -143,15 +146,15 @@
 				"GetProductID derive(ProductID = ProductID /*+toInteger(cacheKey#output().maxkey)*/,",
 				"          Active = 1,",
 				"          EffectiveDate = currentUTC()) ~> AddDimensionColumns",
-				"AddDimensionColumns alterRow(insertIf(true()),",
-				"     updateIf(true())) ~> MarkAsInsert",
-				"MarkAsInsert, ObsoleteRow union(byName: true)~> UnionAllData",
+				"AddDimensionColumns alterRow(insertIf(true())) ~> MarkAsInsert",
+				"MarkAsInsert, MarkAsUpdate union(byName: true)~> UnionAllData",
 				"ExistingProducts filter(Active == 1) ~> FilterForActive",
 				"FilterForActive derive(RowHash2 = md5(Name,Color,StandardCost,ListPrice)) ~> CreateRowHash2",
 				"CreateRowHash2, CreateRowHash1 exists(ExistingProducts@ProductNumber == NewProducts@ProductNumber && RowHash1 == RowHash2 /* Ignorer les lignes identiques */,",
 				"     negate:true,",
 				"     broadcast: 'left')~> FilterForExistingProducts",
 				"FilterForExistingProducts derive(Active = 0) ~> ObsoleteRow",
+				"ObsoleteRow alterRow(updateIf(true())) ~> MarkAsUpdate",
 				"UnionAllData sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
