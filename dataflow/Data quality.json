@@ -52,7 +52,6 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     limit: 100,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> Address",
 				"Address split(iif(!in(columnNames(),'AddressID'),false(),  iif(!in(columnNames(),'AddressLine1'),false(),  iif(!in(columnNames(),'City'),false(),  iif(!in(columnNames(),'StateProvince'),false(),  iif(!in(columnNames(),'CountryRegion'),false(),  iif(!in(columnNames(),'PostalCode'),false(),true())))))),",
