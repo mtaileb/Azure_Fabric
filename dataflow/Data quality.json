@@ -68,7 +68,11 @@
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> OutputToADLS"
+				"     skipDuplicateMapOutputs: true,",
+				"     outputAssertFailedRows: true,",
+				"     assertFailure_container: 'conteneur1',",
+				"     assertFailure_folderPath: 'output',",
+				"     ignoreAssertFailedRows: true) ~> OutputToADLS"
 			]
 		}
 	}
