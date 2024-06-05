@@ -1,0 +1,76 @@
+{
+	"name": "Data quality",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "Address"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Parquet1",
+						"type": "DatasetReference"
+					},
+					"name": "OutputToADLS"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Pass"
+				},
+				{
+					"name": "DataQualityRules"
+				},
+				{
+					"name": "FailedMetaData"
+				},
+				{
+					"name": "FilterOutNULLCountry"
+				},
+				{
+					"name": "MakeFullAddress"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AddressID as integer,",
+				"          AddressLine1 as string,",
+				"          AddressLine2 as string,",
+				"          City as string,",
+				"          StateProvince as string,",
+				"          CountryRegion as string,",
+				"          PostalCode as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> Address",
+				"Address split(iif(!in(columnNames(),'AddressID'),false(),  iif(!in(columnNames(),'AddressLine1'),false(),  iif(!in(columnNames(),'City'),false(),  iif(!in(columnNames(),'StateProvince'),false(),  iif(!in(columnNames(),'CountryRegion'),false(),  iif(!in(columnNames(),'PostalCode'),false(),true())))))),",
+				"     disjoint: false) ~> Pass@(Pass, Fail)",
+				"Pass@Pass assert(expectTrue(CountryRegion == 'United States', false, 'assertUSOnly', null, CountryRegion + ' is not valid'),",
+				"     expectUnique(AddressID, false, 'addressIdUnique', null, \"ID of {AddressID} is not unique\")) ~> DataQualityRules",
+				"Pass@Fail assert(expectTrue(false(), false, 'assert1')) ~> FailedMetaData",
+				"DataQualityRules filter(!isNull(CountryRegion)) ~> FilterOutNULLCountry",
+				"FilterOutNULLCountry derive(FullAddress = \"{AddressLine1} {City}, {StateProvince} {PostalCode}\") ~> MakeFullAddress",
+				"MakeFullAddress sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> OutputToADLS"
+			]
+		}
+	}
+}
