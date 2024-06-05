@@ -1,0 +1,9 @@
+{
+	"name": "adfshell123mt",
+	"location": "westeurope",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "ed3b579d-3222-4d40-9944-7a25fd46c6cc",
+		"tenantId": "dab7d5be-3d32-41f6-b6b4-f31ecf90c7af"
+	}
+}
