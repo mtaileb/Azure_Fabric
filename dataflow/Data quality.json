@@ -55,24 +55,22 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> Address",
 				"Address split(iif(!in(columnNames(),'AddressID'),false(),  iif(!in(columnNames(),'AddressLine1'),false(),  iif(!in(columnNames(),'City'),false(),  iif(!in(columnNames(),'StateProvince'),false(),  iif(!in(columnNames(),'CountryRegion'),false(),  iif(!in(columnNames(),'PostalCode'),false(),true())))))),",
-				"     disjoint: false) ~> Pass@(Pass, Fail)",
+				"     disjoint: false,",
+				"     partitionBy('roundRobin', 4)) ~> Pass@(Pass, Fail)",
 				"Pass@Pass assert(expectTrue(CountryRegion == 'United States', false, 'assertUSOnly', null, CountryRegion + ' is not valid'),",
 				"     expectUnique(AddressID, false, 'addressIdUnique', null, \"ID of {AddressID} is not unique\")) ~> DataQualityRules",
 				"Pass@Fail assert(expectTrue(false(), false, 'assert1')) ~> FailedMetaData",
-				"DataQualityRules filter(!isNull(CountryRegion)) ~> FilterOutNULLCountry",
+				"DataQualityRules filter(!isNull(CountryRegion),",
+				"     partitionBy('roundRobin', 2)) ~> FilterOutNULLCountry",
 				"FilterOutNULLCountry derive(FullAddress = \"{AddressLine1} {City}, {StateProvince} {PostalCode}\") ~> MakeFullAddress",
 				"MakeFullAddress sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'parquet',",
 				"     umask: 0022,",
-				"     preCommands: [],",
-				"     postCommands: [],",
+				"     preCommands: ['mkdir mon-dossier'],",
+				"     postCommands: ['rename '],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     outputAssertFailedRows: true,",
-				"     assertFailure_container: 'conteneur1',",
-				"     assertFailure_folderPath: 'output',",
-				"     ignoreAssertFailedRows: true) ~> OutputToADLS"
+				"     skipDuplicateMapOutputs: true) ~> OutputToADLS"
 			]
 		}
 	}
