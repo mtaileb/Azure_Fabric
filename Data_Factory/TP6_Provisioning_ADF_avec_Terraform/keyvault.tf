@@ -7,7 +7,7 @@ resource "azurerm_resource_group" "KV-RG" {
 }
 
 resource "azurerm_key_vault" "az-key-v1" {
-  name                     = "az-key-v1"
+  name                     = "az-key-v1-123mt" # Mettre un nom unique au niveau gobal
   location                 = azurerm_resource_group.KV-RG.location
   resource_group_name      = azurerm_resource_group.KV-RG.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
