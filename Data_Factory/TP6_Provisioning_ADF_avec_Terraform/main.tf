@@ -11,7 +11,7 @@ resource "azurerm_resource_group" "adf_rg" {
   location = var.resource_group_location
 }
 
-#Create Storage Account & Container
+# Create Storage Account & Container
 resource "azurerm_storage_account" "adf_stg" {
   name                     = "adfstgdev${random_string.prefix.result}"
   resource_group_name      = azurerm_resource_group.adf_rg.name
@@ -32,7 +32,7 @@ resource "azurerm_storage_container" "adf_cont" {
 # Create SQL Database & SQL Server
 
 resource "azurerm_mssql_server" "adf_sql_srv" {
-  name                         = "adf-dev-server"
+  name                         = "adf-dev-server-123mt" # Choisir un nom unique au niveau global
   resource_group_name          = azurerm_resource_group.adf_rg.name
   location                     = azurerm_resource_group.adf_rg.location
   version                      = "12.0"
@@ -91,7 +91,7 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "source" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_blob_storage" "destination" {
-  name              = "az_adls_adfstgdev"
+  name              = "az_adls_adfstgdev-123mt"  # Choisir un nom unique au niveau global
   data_factory_id   = azurerm_data_factory.adf.id
   connection_string = azurerm_storage_account.adf_stg.primary_connection_string
 }
