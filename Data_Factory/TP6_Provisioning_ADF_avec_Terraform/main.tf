@@ -60,12 +60,13 @@ resource "azurerm_mssql_firewall_rule" "adf_sql_frule" {
   end_ip_address   = "<Add your Public IP>"
 }
 
-resource "azurerm_mssql_firewall_rule" "adf_sql_frule2" {
-  name             = "FirewallRule2"
-  server_id        = azurerm_mssql_server.adf_sql_srv.id
-  start_ip_address = "<Azure Integration Runtime IP>"
-  end_ip_address   = "<Azure Integration Runtime IP>"
-}
+# Au cas où vous utilisez un runtime d'intégration on-premises:
+#resource "azurerm_mssql_firewall_rule" "adf_sql_frule2" {
+#  name             = "FirewallRule2"
+#  server_id        = azurerm_mssql_server.adf_sql_srv.id
+#  start_ip_address = "<Azure Integration Runtime IP>"
+#  end_ip_address   = "<Azure Integration Runtime IP>"
+#}
 
 
 # Create Azure Data Factory
