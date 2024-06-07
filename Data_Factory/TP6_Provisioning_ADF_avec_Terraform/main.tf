@@ -13,7 +13,7 @@ resource "azurerm_resource_group" "adf_rg" {
 
 #Create Storage Account & Container
 resource "azurerm_storage_account" "adf_stg" {
-  name                     = "adfstgdev${random_string.main.result}"
+  name                     = "adfstgdev${random_string.prefix.result}"
   resource_group_name      = azurerm_resource_group.adf_rg.name
   location                 = azurerm_resource_group.adf_rg.location
   account_kind             = "StorageV2"
