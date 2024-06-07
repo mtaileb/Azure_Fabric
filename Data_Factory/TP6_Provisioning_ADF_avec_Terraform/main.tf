@@ -56,15 +56,15 @@ resource "azurerm_mssql_database" "adf_sql_db" {
 resource "azurerm_mssql_firewall_rule" "adf_sql_frule" {
   name             = "FirewallRule"
   server_id        = azurerm_mssql_server.adf_sql_srv.id
-  start_ip_address = "Add your Public IP"
-  end_ip_address   = "Add your Public IP"
+  start_ip_address = "<Add your Public IP>"
+  end_ip_address   = "<Add your Public IP>"
 }
 
 resource "azurerm_mssql_firewall_rule" "adf_sql_frule2" {
   name             = "FirewallRule2"
   server_id        = azurerm_mssql_server.adf_sql_srv.id
-  start_ip_address = "102.133.217.21" # Azure Integration Runtime IP
-  end_ip_address   = "102.133.217.21" # Azure Integration Runtime IP
+  start_ip_address = "<Azure Integration Runtime IP>"
+  end_ip_address   = "<Azure Integration Runtime IP>"
 }
 
 
