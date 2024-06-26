@@ -2,4 +2,10 @@
 md terraform
 cd terraform
 # Récupérer les fichiers de configuration Terraform:
-foreach ($file in @('main.tf', 'terraform.tfvars', 'variables.tf', 'keyvault.tf', 'providers.tf')) { $uri = "https://raw.githubusercontent.com/mtaileb/main/Data_Factory/TP6_Provisioning_ADF_avec_Terraform/$file" Invoke-WebRequest -Uri $uri -OutFile $file }
+$files = @('main.tf', 'terraform.tfvars', 'variables.tf', 'keyvault.tf', 'providers.tf')
+$baseUri = "https://raw.githubusercontent.com/mtaileb/Azure_Fabric/main/Data_Factory/TP6_Provisioning_ADF_avec_Terraform/"
+$files | ForEach-Object {
+    $uri = "$baseUri$_"
+    Invoke-WebRequest -Uri $uri -OutFile $_
+}
+
