@@ -1,7 +1,7 @@
 # Create Key Vault
 
 # Create Resource Group
-resource "azurerm_resource_group" "KV-RG" {
+resource "azurerm_resource_group" "KV-RG-Mehdi" { # Mettre un nom unique
   name     = "KeyVault-RG"
   location = var.resource_group_location
 }
