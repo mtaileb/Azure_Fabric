@@ -10,6 +10,7 @@ WHERE nyc.filepath(1) >= '2009' AND nyc.filepath(1) <= '2019'
 GROUP BY YEAR(tpepPickupDateTime)
 ORDER BY 1 ASC
 
+#############################################################################################################
       
 SELECT
     CAST([tpepPickupDateTime] AS DATE) AS [current_day],
@@ -22,6 +23,8 @@ FROM
 WHERE nyc.filepath(1) = '2016'
 GROUP BY CAST([tpepPickupDateTime] AS DATE)
 ORDER BY 1 ASC
+
+#############################################################################################################
 
 WITH taxi_rides AS (
 SELECT
@@ -51,9 +54,7 @@ SELECT
     *
 FROM taxi_rides t
 LEFT OUTER JOIN public_holidays p on t.current_day = p.date
-)
-
-      
+)      
 SELECT 
     *,
     holiday_rides = 
@@ -64,6 +65,7 @@ SELECT
 FROM joined_data
 ORDER BY current_day ASC
 
+#############################################################################################################
 
 SELECT
     AVG(windspeed) AS avg_windspeed,
