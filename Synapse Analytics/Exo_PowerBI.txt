@@ -1,0 +1,14 @@
+CREATE DATABASE [Demo];
+GO
+CREATE EXTERNAL DATA SOURCE AzureOpenData
+WITH ( LOCATION = 'https://azureopendatastorage.blob.core.windows.net/')
+
+CREATE VIEW usPopulationView AS
+SELECT
+    *
+FROM
+    OPENROWSET(
+        BULK 'censusdatacontainer/release/us_population_county/year=20*/*.parquet',
+        DATA_SOURCE = 'AzureOpenData',
+        FORMAT='PARQUET'
+    ) AS uspv;
